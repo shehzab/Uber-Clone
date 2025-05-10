@@ -152,3 +152,92 @@ The request expects a JSON payload with the following structure:
 ## Notes
 - The password provided in the request is compared with the hashed password stored in the database.
 - The JWT token is generated using the user's `_id` and a secret specified in the environment variables.
+
+---
+
+## `/users/profile` Endpoint
+
+## Description
+This endpoint retrieves the profile information of the currently authenticated user.
+
+## HTTP Method
+`GET`
+
+## URL
+`/users/profile`
+
+## Authentication
+Requires a valid JWT token in either:
+- Cookie named 'token'
+- Authorization header as Bearer token
+
+## Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+
+```json
+{
+  "_id": "string",
+  "fullname": {
+    "firstname": "string",
+    "lastname": "string"
+  },
+  "email": "string",
+  "socketId": "string (if available)"
+}
+```
+
+## Error Response
+### Authentication Errors
+- **Status Code:** `401 Unauthorized`
+- **Response Body:**
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+---
+
+## `/users/logout` Endpoint
+
+## Description
+This endpoint logs out the current user by clearing their authentication token and blacklisting it to prevent future use.
+
+## HTTP Method
+`GET`
+
+## URL
+`/users/logout`
+
+## Authentication
+Requires a valid JWT token in either:
+- Cookie named 'token'
+- Authorization header as Bearer token
+
+## Success Response
+- **Status Code:** `200 OK`
+- **Response Body:**
+
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+## Error Response
+### Authentication Errors
+- **Status Code:** `401 Unauthorized`
+- **Response Body:**
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+## Notes
+- The endpoint clears the authentication cookie if present
+- The token is added to a blacklist to prevent reuse
+- Any subsequent requests with the same token will be rejected
