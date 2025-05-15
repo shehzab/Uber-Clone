@@ -241,3 +241,106 @@ Requires a valid JWT token in either:
 - The endpoint clears the authentication cookie if present
 - The token is added to a blacklist to prevent reuse
 - Any subsequent requests with the same token will be rejected
+
+---
+
+## `/captains/register` Endpoint
+
+## Description
+This endpoint allows a new captain (driver) to register with their vehicle details. The captain's information is validated and stored in the database after hashing the password. On successful registration, the endpoint returns a JWT token and captain information.
+
+## HTTP Method
+`POST`
+
+## URL
+`/captains/register`
+
+## Request Body
+The request expects a JSON payload with the following structure:
+
+```json
+{
+  "fullname": {
+    "firstname": "string (min 3 characters)",
+    "lastname": "string (min 3 characters)"
+  },
+  "email": "string (valid email format)",
+  "password": "string (min 6 characters)",
+  "vehicle": {
+    "color": "string (min 3 characters)",
+    "plate": "string (min 3 characters)",
+    "capacity": "number (min 1)",
+    "vehicleType": "string (enum: car, motorcycle, auto)"
+  }
+}
+```
+
+### Required Fields
+- `fullname.firstname`: Captain's first name (minimum 3 characters)
+- `fullname.lastname`: Captain's last name (minimum 3 characters)
+- `email`: A valid email address
+- `password`: Password string (minimum 6 characters)
+- `vehicle.color`: Vehicle color (minimum 3 characters)
+- `vehicle.plate`: Vehicle plate number (minimum 3 characters)
+- `vehicle.capacity`: Vehicle passenger capacity (minimum 1)
+- `vehicle.vehicleType`: Type of vehicle (must be one of: car, motorcycle, auto)
+
+## Success Response
+- **Status Code:** `201 Created`
+- **Response Body:**
+
+```json
+{
+  "success": true,
+  "message": "Captain registered successfully",
+  "captain": {
+    "id": "string",
+    "fullname": {
+      "firstname": "string",
+      "lastname": "string"
+    },
+    "email": "string",
+    "vehicle": {
+      "color": "string",
+      "plate": "string",
+      "capacity": "number",
+      "vehicleType": "string"
+    }
+  },
+  "token": "string (JWT token)"
+}
+```
+
+## Error Response
+### Validation Errors
+- **Status Code:** `422 Unprocessable Entity`
+- **Response Body:**
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Error message detailing the validation issue",
+      "param": "name of the parameter that failed validation",
+      "location": "body"
+    }
+  ]
+}
+```
+
+### Duplicate Email Error
+- **Status Code:** `400 Bad Request`
+- **Response Body:**
+
+```json
+{
+  "success": false,
+  "message": "Captain already exists"
+}
+```
+
+## Notes
+- All passwords are hashed before being stored in the database
+- The JWT token is generated using the captain's `_id` and expires in 24 hours
+- Vehicle type must be one of the predefined types: car, motorcycle, or auto
+- The captain's status is set to 'inactive' by default

@@ -12,6 +12,13 @@ const blackListTokenModel = require('../models/blackListTokenModel')
     }
 
     const {fullname, email, password}  = req.body;
+    const isUserExists = await userModel.findOne({email});
+    if(isUserExists){
+        return res.status(400).json({
+            success: false,
+            message: 'User already exists'
+        });
+    }
 
     const hashedPassword = await userModel.hashPassword(password);
 
