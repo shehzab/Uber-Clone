@@ -242,105 +242,233 @@ Requires a valid JWT token in either:
 - The token is added to a blacklist to prevent reuse
 - Any subsequent requests with the same token will be rejected
 
+
+Here is the **Captain Routes API Documentation** in Markdown format based on your uploaded files:
+
 ---
 
-## `/captains/register` Endpoint
+# Captain Routes API Documentation
 
-## Description
-This endpoint allows a new captain (driver) to register with their vehicle details. The captain's information is validated and stored in the database after hashing the password. On successful registration, the endpoint returns a JWT token and captain information.
+This documentation covers all API endpoints related to `captain` (driver) operations including registration, login, profile fetching, and logout.
 
-## HTTP Method
-`POST`
+---
 
-## URL
-`/captains/register`
+## Base Path
 
-## Request Body
-The request expects a JSON payload with the following structure:
+```
+/captains
+```
+
+---
+
+## 1. Register Captain
+
+### Endpoint
+
+```
+POST /captains/register
+```
+
+### Description
+
+Registers a new captain by validating input data, hashing the password, storing details in the database, and returning a JWT token.
+
+### Request Body
 
 ```json
 {
   "fullname": {
-    "firstname": "string (min 3 characters)",
-    "lastname": "string (min 3 characters)"
+    "firstname": "John",
+    "lastname": "Doe"
   },
-  "email": "string (valid email format)",
-  "password": "string (min 6 characters)",
+  "email": "john.doe@example.com",
+  "password": "password123",
   "vehicle": {
-    "color": "string (min 3 characters)",
-    "plate": "string (min 3 characters)",
-    "capacity": "number (min 1)",
-    "vehicleType": "string (enum: car, motorcycle, auto)"
+    "color": "Red",
+    "plate": "ABC123",
+    "capacity": 4,
+    "vehicleType": "car"
   }
 }
 ```
 
-### Required Fields
-- `fullname.firstname`: Captain's first name (minimum 3 characters)
-- `fullname.lastname`: Captain's last name (minimum 3 characters)
-- `email`: A valid email address
-- `password`: Password string (minimum 6 characters)
-- `vehicle.color`: Vehicle color (minimum 3 characters)
-- `vehicle.plate`: Vehicle plate number (minimum 3 characters)
-- `vehicle.capacity`: Vehicle passenger capacity (minimum 1)
-- `vehicle.vehicleType`: Type of vehicle (must be one of: car, motorcycle, auto)
+### Validations
 
-## Success Response
-- **Status Code:** `201 Created`
-- **Response Body:**
+* `fullname.firstname`: min 3 characters
+* `email`: valid email format
+* `password`: min 6 characters
+* `vehicle.color`: min 3 characters
+* `vehicle.plate`: min 3 characters
+* `vehicle.capacity`: numeric
+* `vehicle.vehicleType`: min 3 characters
+
+### Success Response
+
+**Status Code:** `201 Created`
 
 ```json
 {
-  "success": true,
-  "message": "Captain registered successfully",
+  "token": "JWT_TOKEN_HERE",
   "captain": {
-    "id": "string",
+    "_id": "string",
     "fullname": {
-      "firstname": "string",
-      "lastname": "string"
+      "firstname": "John",
+      "lastname": "Doe"
     },
-    "email": "string",
+    "email": "john.doe@example.com",
     "vehicle": {
-      "color": "string",
-      "plate": "string",
-      "capacity": "number",
-      "vehicleType": "string"
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
     }
-  },
-  "token": "string (JWT token)"
+  }
 }
 ```
 
-## Error Response
-### Validation Errors
-- **Status Code:** `422 Unprocessable Entity`
-- **Response Body:**
+### Error Responses
+
+**Status Code:** `400 Bad Request` (Validation errors)
+
+---
+
+## 2. Login Captain
+
+### Endpoint
+
+```
+POST /captains/login
+```
+
+### Description
+
+Logs in a captain by validating credentials and returning a JWT token.
+
+### Request Body
 
 ```json
 {
-  "errors": [
-    {
-      "msg": "Error message detailing the validation issue",
-      "param": "name of the parameter that failed validation",
-      "location": "body"
-    }
-  ]
+  "email": "john.doe@example.com",
+  "password": "password123"
 }
 ```
 
-### Duplicate Email Error
-- **Status Code:** `400 Bad Request`
-- **Response Body:**
+### Validations
+
+* `email`: valid email format
+* `password`: min 6 characters
+
+### Success Response
+
+**Status Code:** `200 OK`
 
 ```json
 {
-  "success": false,
-  "message": "Captain already exists"
+  "token": "JWT_TOKEN_HERE",
+  "captain": {
+    "_id": "string",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }
 }
 ```
 
-## Notes
-- All passwords are hashed before being stored in the database
-- The JWT token is generated using the captain's `_id` and expires in 24 hours
-- Vehicle type must be one of the predefined types: car, motorcycle, or auto
-- The captain's status is set to 'inactive' by default
+### Error Responses
+
+**Status Code:** `401 Unauthorized`
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+---
+
+## 3. Get Captain Profile
+
+### Endpoint
+
+```
+GET /captains/profile
+```
+
+### Description
+
+Returns the profile of the currently authenticated captain.
+
+### Authentication
+
+* Required via `Authorization: Bearer <token>` header or `token` cookie.
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+  "captain": {
+    "_id": "string",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }
+}
+```
+
+### Error Response
+
+**Status Code:** `401 Unauthorized`
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+---
+
+## 4. Logout Captain
+
+### Endpoint
+
+```
+GET /captains/logout
+```
+
+### Description
+
+Logs out the currently authenticated captain by clearing the cookie and blacklisting the token.
+
+### Authentication
+
+* Required via `Authorization: Bearer <token>` header or `token` cookie.
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+  "message": "Logout successfully"
+}
+```
+
+---
